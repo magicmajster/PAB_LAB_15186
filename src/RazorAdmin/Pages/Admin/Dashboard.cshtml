@@ -1,0 +1,74 @@
+﻿@page
+@model RazorAdmin.Pages.Admin.DashboardModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="container mt-4">
+    <h2>Product Management</h2>
+    
+    <div class="mb-3">
+        <button id="refreshBtn" class="btn btn-primary">Refresh</button>
+        <a href="/Admin/CreateProduct" class="btn btn-success">Add New</a>
+    </div>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="productsTable">
+           
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = sessionStorage.getItem('jwt');
+            
+            function loadProducts() {
+                fetch('http://localhost:5135/api/products', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const table = document.getElementById('productsTable');
+                    table.innerHTML = data.map(product => `
+                        <tr>
+                            <td>${product.id}</td>
+                            <td>${product.name}</td>
+                            <td>${product.price}</td>
+                            <td>
+                                <a href="/Admin/EditProduct/${product.id}" class="btn btn-sm btn-warning">Edit</a>
+                                <button onclick="deleteProduct(${product.id})" class="btn btn-sm btn-danger">Delete</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                });
+            }
+
+            window.deleteProduct = function(id) {
+                if (confirm('Are you sure?')) {
+                    fetch(`http://localhost:5135/api/products/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    }).then(() => loadProducts());
+                }
+            };
+
+            document.getElementById('refreshBtn').addEventListener('click', loadProducts);
+            
+            loadProducts();
+        });
+    </script>
+}
