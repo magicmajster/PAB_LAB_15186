@@ -1,39 +1,49 @@
 ﻿using Core.Entities;
 using Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-
-namespace Infrastructure.Data;
+using BCrypt.Net;
 
 public static class SeedData
 {
     public static async Task Initialize(IServiceProvider serviceProvider)
     {
-        using var scope = serviceProvider.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-        if (!context.Products.Any())
-        {
-            var products = new List<Product>
-            {
-                new() { Name = "Laptop", Price = 999.99m, Description = "High performance laptop" },
-                new() { Name = "Phone", Price = 699.99m, Description = "Smartphone with great camera" },
-                new() { Name = "Tablet", Price = 399.99m, Description = "Portable tablet device" }
-            };
-
-            await context.Products.AddRangeAsync(products);
-        }
+        using var context = new AppDbContext(
+            serviceProvider.GetRequiredService<DbContextOptions<AppDbContext>>());
 
         if (!context.Users.Any())
         {
-            var users = new List<User>
-            {
-                new() { Username = "admin", Email = "admin@example.com", PasswordHash = "admin123", Role = "Admin" },
-                new() { Username = "user", Email = "user@example.com", PasswordHash = "user123", Role = "User" }
-            };
+           
+            Console.WriteLine("Seeding admin user...");
+            var adminHash = BCrypt.Net.BCrypt.HashPassword("admin123");
+            Console.WriteLine($"Admin hash: {adminHash}");
 
-            await context.Users.AddRangeAsync(users);
+            context.Users.AddRange(
+                new User
+                {
+                    Username = "admin",
+                    PasswordHash = adminHash,
+                    Role = "Admin"
+                },
+                new User
+                {
+                    Username = "user",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("user123"),
+                    Role = "User"
+                }
+            );
+
+            await context.SaveChangesAsync();
         }
 
-        await context.SaveChangesAsync();
+        if (!context.Products.Any())
+        {
+            context.Products.AddRange(
+                new Product { Name = "Product 1", Price = 9.99m },
+                new Product { Name = "Product 2", Price = 19.99m }
+            );
+
+            await context.SaveChangesAsync();
+        }
     }
 }

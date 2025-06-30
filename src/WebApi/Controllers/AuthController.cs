@@ -2,6 +2,7 @@
 using Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Services;
+using BCrypt.Net; 
 
 namespace WebApi.Controllers
 {
@@ -25,8 +26,11 @@ namespace WebApi.Controllers
         {
             var user = await _userRepo.GetByUsernameAsync(loginDto.Username);
 
-            if (user == null || user.PasswordHash != loginDto.Password)
+            if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
                 return Unauthorized("Invalid credentials");
+
+           
+            Console.WriteLine($"User {user.Username} logged in with role: {user.Role}");
 
             return _tokenService.CreateToken(user);
         }
