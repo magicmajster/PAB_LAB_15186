@@ -17,7 +17,7 @@ namespace RazorAdmin.Pages
             {
                 HttpContext.Session.SetString("IsAuthenticated", "true");
                 HttpContext.Session.SetString("Role", "Admin");
-                return RedirectToPage("/Admin/Index");
+                return RedirectToPage("/Admin/Dashboard");
             }
             else if (Username == "user" && Password == "user123")
             {

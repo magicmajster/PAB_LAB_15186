@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using WebApi.Middleware;
 using WebApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
